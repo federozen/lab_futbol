@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from football_lab.config import LabConfig
-from football_lab.release import APP_BUILD_ID
+from football_lab.config import APP_BUILD_ID
 from football_lab.ui.charts import comparison_bars, elo_history_chart, form_trend_chart, radar_chart
 
 

@@ -7,7 +7,7 @@ from football_lab.data.calculator_adapter import ExistingCalculatorProvider
 from football_lab.data.csv_provider import DataFrameProvider
 from football_lab.data.scraping_provider import PublicScrapingProvider
 from football_lab.services.lab_service import LabService
-from football_lab.release import APP_BUILD_ID, APP_BUILD_LABEL, MIN_VERIFIED_FINISHED
+from football_lab.config import APP_BUILD_ID, APP_BUILD_LABEL, MIN_VERIFIED_FINISHED
 from football_lab.ui.pages import PAGES, render_page
 
 
