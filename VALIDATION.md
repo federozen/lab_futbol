@@ -1,58 +1,30 @@
-# Validación de la entrega con scraping público
+# Validación del paquete GitHub + Streamlit
 
-## Tests
+Fecha: 14/09/2026.
 
-Comando ejecutado:
+## Estado
 
-```bash
-pytest -q
-```
+- Suite completa: **302 tests OK**.
+- El repositorio compila y la capa de servicios funciona sin Opta.
+- El modo web usa scraping HTML público con validación contra el fixture canónico.
 
-Resultado:
+## Corrección aplicada tras el primer deploy
 
-```text
-300 passed
-```
+La primera ejecución en Streamlit mostró 91 resultados finales, 0 resultados fechados y partidos de Fecha 4 como próximos. Se detectaron dos causas:
 
-Incluye la suite heredada de la Calculadora LPF y tests nuevos de:
+1. El proveedor consultaba primero la portada del Clausura y podía detenerse al superar 40 partidos, aunque esa portada fuera una ventana parcial del historial.
+2. Las agendas de LPF pueden venir en un único párrafo de WordPress con saltos `<br>`; el parser anterior aplastaba esas líneas y perdía fecha/hora.
 
-- data leakage por fecha y por jornada;
-- Elo con cronología mixta protegida;
-- Colley y PageRank;
-- proveedor offline;
-- proveedor de scraping público;
-- parser de fechas/horas de la agenda oficial LPF (`18.00`, `18 de septiembre`);
-- descubrimiento de notas de programación LPF;
-- reconciliación entre scraping, snapshot y base incluida;
-- calidad de datos y servicios JSON-safe.
+La versión actual:
 
-## Flujo operativo validado
+- consulta primero la página dedicada de resultados de FutbolArgentino;
+- usa la tabla pública como control de cantidad de partidos jugados cuando está disponible;
+- sigue buscando otras variantes si la cobertura no explica esa tabla;
+- parsea agendas LPF conservando los saltos de línea;
+- evita mostrar como próximos huecos viejos sin fecha de jornadas ya superadas.
 
-El proveedor `PublicScrapingProvider`:
+## Limitaciones que siguen siendo deliberadas
 
-1. intenta resultados/horarios públicos de FutbolArgentino.com;
-2. intenta tabla de posiciones como control de cobertura;
-3. descubre agendas recientes en la portada de Primera de la LPF y parsea fecha/hora;
-4. consulta marcadores oficiales adicionales cuando la cobertura principal no alcanza;
-5. reconcilia sin hacer retroceder resultados ya conocidos;
-6. guarda una snapshot válida;
-7. cae a snapshot/base incluida si la red falla.
-
-Los tests usan HTML controlado e inyección del transporte para probar este flujo sin depender de Internet durante CI.
-
-## Validación de fuentes actuales
-
-El 14/09/2026 se verificó mediante búsqueda web que FutbolArgentino.com mantiene una página de resultados del Torneo Clausura 2026 con fechas, horarios, marcadores y estados, y que la LPF oficial publica la programación de las fechas 8 a 11. El código no depende de esos textos exactos: filtra los partidos contra el fixture canónico.
-
-## Streamlit
-
-Este runtime de construcción no tiene `streamlit` instalado y no puede descargar paquetes por `pip`, por lo que no fue posible levantar literalmente `streamlit run app.py` aquí.
-
-Se verificaron:
-
-```text
-python -m compileall -q football_lab app.py lpf_fixture_sources.py lpf_reconcile.py
-pytest -q
-```
-
-`requirements.txt` declara `streamlit>=1.36`; Streamlit Community Cloud instalará la dependencia al desplegar el repositorio.
+- xG, PPDA, eventos y jugadores no se inventan: quedan no disponibles hasta contar con una fuente que los entregue.
+- Si las fuentes web quedan parciales o contradictorias, Calidad de datos bloquea la interpretación como foto actual.
+- La snapshot local de Streamlit es un respaldo operativo, no una base persistente garantizada entre redeploys.
