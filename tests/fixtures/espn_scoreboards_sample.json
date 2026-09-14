@@ -1,0 +1,214 @@
+[
+  {
+    "events": [
+      {
+        "id": "1",
+        "date": "2026-07-12T20:00Z",
+        "competitions": [
+          {
+            "date": "2026-07-12T20:00Z",
+            "week": {
+              "number": 1
+            },
+            "status": {
+              "type": {
+                "state": "post",
+                "completed": true,
+                "name": "STATUS_FINAL"
+              }
+            },
+            "competitors": [
+              {
+                "homeAway": "home",
+                "team": {
+                  "displayName": "River Plate"
+                },
+                "score": "2"
+              },
+              {
+                "homeAway": "away",
+                "team": {
+                  "displayName": "Barracas Central"
+                },
+                "score": "1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "2",
+        "date": "2026-07-13T22:00Z",
+        "competitions": [
+          {
+            "date": "2026-07-13T22:00Z",
+            "week": {
+              "number": 1
+            },
+            "status": {
+              "type": {
+                "state": "pre",
+                "completed": false,
+                "name": "STATUS_SCHEDULED"
+              }
+            },
+            "competitors": [
+              {
+                "homeAway": "home",
+                "team": {
+                  "displayName": "Racing"
+                }
+              },
+              {
+                "homeAway": "away",
+                "team": {
+                  "displayName": "Gimnasia La Plata"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "3",
+        "date": "2026-07-14T22:00Z",
+        "competitions": [
+          {
+            "date": "2026-07-14T22:00Z",
+            "week": {
+              "number": 1
+            },
+            "status": {
+              "type": {
+                "state": "pre",
+                "completed": false,
+                "name": "STATUS_POSTPONED"
+              }
+            },
+            "competitors": [
+              {
+                "homeAway": "home",
+                "team": {
+                  "displayName": "Belgrano"
+                }
+              },
+              {
+                "homeAway": "away",
+                "team": {
+                  "displayName": "Rosario Central"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "events": [
+      {
+        "id": "1",
+        "date": "2026-07-12T20:00Z",
+        "competitions": [
+          {
+            "date": "2026-07-12T20:00Z",
+            "week": {
+              "number": 1
+            },
+            "status": {
+              "type": {
+                "state": "post",
+                "completed": true,
+                "name": "STATUS_FINAL"
+              }
+            },
+            "competitors": [
+              {
+                "homeAway": "home",
+                "team": {
+                  "displayName": "River Plate"
+                },
+                "score": "9"
+              },
+              {
+                "homeAway": "away",
+                "team": {
+                  "displayName": "Barracas Central"
+                },
+                "score": "9"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "4",
+        "date": "2026-07-15T22:00Z",
+        "competitions": [
+          {
+            "date": "2026-07-15T22:00Z",
+            "week": {
+              "number": 1
+            },
+            "status": {
+              "type": {
+                "state": "post",
+                "completed": true,
+                "name": "STATUS_FINAL"
+              }
+            },
+            "competitors": [
+              {
+                "homeAway": "home",
+                "team": {
+                  "displayName": "Estudiantes de Río Cuarto"
+                },
+                "score": "0"
+              },
+              {
+                "homeAway": "away",
+                "team": {
+                  "displayName": "Tigre"
+                },
+                "score": "0"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "5",
+        "date": "2026-07-16T22:00Z",
+        "competitions": [
+          {
+            "date": "2026-07-16T22:00Z",
+            "week": {
+              "number": 1
+            },
+            "status": {
+              "type": {
+                "state": "pre",
+                "completed": false,
+                "name": "STATUS_CANCELLED"
+              }
+            },
+            "competitors": [
+              {
+                "homeAway": "home",
+                "team": {
+                  "displayName": "Sarmiento"
+                }
+              },
+              {
+                "homeAway": "away",
+                "team": {
+                  "displayName": "Argentinos Juniors"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
