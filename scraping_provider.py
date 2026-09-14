@@ -8,6 +8,7 @@ from typing import Callable, Iterable, Mapping, Sequence
 from urllib.parse import urljoin, urlparse
 
 from football_lab.data.calculator_adapter import ExistingCalculatorProvider
+from football_lab.data.bootstrap_seed_20260914 import BOOTSTRAP_RECORDS, BOOTSTRAP_SAVED_AT
 from football_lab.models import Match, ProviderDataset
 from football_lab.utils import parse_datetime, slug
 from lpf_clubs import canon_club
@@ -50,6 +51,40 @@ TYC_FIXTURE_RESULTS_URL = (
     "https://www.tycsports.com/liga-profesional-de-futbol/"
     "fixture-del-clausura-2026-calendario-de-partidos-y-resultados-id750943.html"
 )
+TYC_STATS_FIXTURE_URL = "https://www.tycsports.com/estadisticas/liga-profesional-de-futbol/fixture.html"
+
+TYC_TEAM_CODES = {
+    "NOB": "Newell's Old Boys",
+    "VEL": "Vélez Sarsfield",
+    "DEF": "Defensa y Justicia",
+    "GEM": "Gimnasia de Mendoza",
+    "BOC": "Boca Juniors",
+    "CCO": "Central Córdoba",
+    "EST": "Estudiantes de La Plata",
+    "PLA": "Platense",
+    "INM": "Independiente Rivadavia",
+    "ALD": "Aldosivi",
+    "ATT": "Atlético Tucumán",
+    "RIV": "River Plate",
+    "TAL": "Talleres",
+    "UNI": "Unión",
+    "SAR": "Sarmiento",
+    "BEL": "Belgrano",
+    "TIG": "Tigre",
+    "ROS": "Rosario Central",
+    "ARG": "Argentinos Juniors",
+    "GIM": "Gimnasia La Plata",
+    "IND": "Independiente",
+    "SLO": "San Lorenzo",
+    "HUR": "Huracán",
+    "RAC": "Racing",
+    "RIE": "Deportivo Riestra",
+    "LAN": "Lanús",
+    "BAN": "Banfield",
+    "BAR": "Barracas Central",
+    "INS": "Instituto",
+    "ERC": "Estudiantes de Río Cuarto",
+}
 
 
 def _clean_text(value: object) -> str:
@@ -365,6 +400,81 @@ def parse_tyc_fixture_results_html(
             best[key] = row
     return list(best.values())
 
+
+def parse_tyc_stats_fixture_html(
+    html: str,
+    *,
+    official_fixture: Sequence[Mapping[str, object]] = LPF_FIXTURE,
+    source_url: str = TYC_STATS_FIXTURE_URL,
+) -> list[dict]:
+    """Parsea el fixture estadístico de TyC, útil para la fecha actual y la siguiente.
+
+    La página expone códigos de tres letras, marcador, fecha, hora y estado. Sólo
+    considera final un partido cuando aparece ``Finalizado``; un 0-0 en vivo no se
+    incorpora como resultado definitivo. Cada pareja vuelve a validarse contra el
+    fixture canónico de la LPF.
+    """
+    try:
+        from bs4 import BeautifulSoup
+    except Exception as exc:  # pragma: no cover
+        raise RuntimeError(f"BeautifulSoup no está disponible: {exc}") from exc
+
+    fixture_index = official_fixture_index(official_fixture)
+    soup = BeautifulSoup(html or "", "lxml")
+    for tag in soup(["script", "style", "noscript", "svg"]):
+        tag.decompose()
+    text = _clean_text(soup.get_text(" ", strip=True))
+    if not text:
+        raise RuntimeError("TyC estadísticas devolvió HTML sin texto parseable")
+
+    round_markers = [(m.start(), int(m.group(1))) for m in re.finditer(r"\bFecha\s+(\d{1,2})\b", text, re.I)]
+    match_re = re.compile(
+        r"\b(?P<home>[A-Z]{3})\s+(?P<hg>\d+|-)\s+VS\s+(?P<ag>\d+|-)\s+"
+        r"(?P<away>[A-Z]{3})\s+(?P<date>\d{2}/\d{2}/\d{4})\s+"
+        r"(?P<clock>\d{2}:\d{2})\s+HS\b"
+    )
+    matches = list(match_re.finditer(text))
+    rows: list[dict] = []
+    for idx, match in enumerate(matches):
+        home = TYC_TEAM_CODES.get(match.group("home"))
+        away = TYC_TEAM_CODES.get(match.group("away"))
+        if not home or not away or (home, away) not in fixture_index:
+            continue
+        fixture_round = int(fixture_index[(home, away)].get("round") or 0)
+        declared_round = None
+        for pos, value in round_markers:
+            if pos > match.start():
+                break
+            declared_round = value
+        if declared_round is not None and declared_round != fixture_round:
+            continue
+
+        day, month, year = (int(part) for part in match.group("date").split("/"))
+        hour, minute = (int(part) for part in match.group("clock").split(":"))
+        dt = datetime(year, month, day, hour, minute, tzinfo=ARG_TZ)
+        next_start = matches[idx + 1].start() if idx + 1 < len(matches) else min(len(text), match.end() + 100)
+        suffix = text[match.end():next_start]
+        final = bool(re.search(r"\bFinalizado\b", suffix, re.I))
+        has_score = match.group("hg").isdigit() and match.group("ag").isdigit()
+        played = final and has_score
+        rows.append(
+            {
+                "match_id": f"TYC-STATS-F{fixture_round:02d}-{slug(home)}-{slug(away)}",
+                "round": fixture_round,
+                "home": home,
+                "away": away,
+                "scheduled_at": dt.isoformat(),
+                "status": "played" if played else "scheduled",
+                "home_score": int(match.group("hg")) if played else None,
+                "away_score": int(match.group("ag")) if played else None,
+                "source": "TyC Sports Estadísticas",
+                "source_url": source_url,
+            }
+        )
+    if not rows:
+        raise RuntimeError("no pude identificar partidos del fixture estadístico de TyC")
+    return rows
+
 def _record_from_match(match: Match) -> dict:
     return {
         "match_id": match.match_id,
@@ -391,6 +501,8 @@ def _source_priority(record: Mapping[str, object]) -> int:
     source = str(record.get("source") or "").lower()
     if "liga profesional" in source:
         return 60
+    if "tyc sports estadísticas" in source or "tyc sports estadisticas" in source:
+        return 58
     if "futbolargentino" in source:
         return 55
     if "tyc sports" in source:
@@ -519,17 +631,31 @@ class PublicScrapingProvider:
         return fetch_html(url, referer=referer, timeout=self.timeout, retries=0)
 
     def _load_bootstrap(self) -> tuple[list[dict], str | None]:
+        """Carga la mejor base editorial disponible.
+
+        El seed de Fecha 9 vive también dentro del paquete Python. Esto evita el
+        fallo que vimos en Streamlit Cloud cuando se actualizaban archivos Python
+        pero el JSON auxiliar no llegaba al repositorio: en ese caso la app caía a
+        91 resultados y 0 fechados. El JSON sigue admitido para futuras fotos y se
+        usa si contiene al menos la misma cantidad de finales que el seed embebido.
+        """
+        embedded = [dict(row) for row in BOOTSTRAP_RECORDS]
+        embedded_played = sum(_played(row) for row in embedded)
+        best_records = embedded
+        best_saved_at = BOOTSTRAP_SAVED_AT
+
         path = self.root / "data" / "bootstrap" / "lpf_clausura_2026_20260914.json"
         if not path.exists():
-            return [], None
+            return best_records, best_saved_at
         try:
             payload = json.loads(path.read_text(encoding="utf-8"))
             records = list(payload.get("records") or [])
-            return records, str(payload.get("saved_at") or "") or None
+            played = sum(_played(row) for row in records)
+            if played >= embedded_played:
+                return records, str(payload.get("saved_at") or "") or best_saved_at
         except Exception:
-            # El bootstrap es una red de seguridad; una copia dañada no debe impedir
-            # que las fuentes web o la base histórica sigan funcionando.
-            return [], None
+            pass
+        return best_records, best_saved_at
 
     def _load_snapshot(self) -> tuple[list[dict], float | None, str | None]:
         if not self.snapshot_path.exists():
@@ -581,6 +707,19 @@ class PublicScrapingProvider:
             return rows, [source_url], []
         except Exception as exc:
             return [], [], [f"{TYC_FIXTURE_RESULTS_URL}: {exc}"]
+
+    def _scrape_tyc_stats(self) -> tuple[list[dict], list[str], list[str]]:
+        try:
+            html, final_url = self._get_html(TYC_STATS_FIXTURE_URL)
+            source_url = final_url or TYC_STATS_FIXTURE_URL
+            rows = parse_tyc_stats_fixture_html(
+                html,
+                official_fixture=LPF_FIXTURE,
+                source_url=source_url,
+            )
+            return rows, [source_url], []
+        except Exception as exc:
+            return [], [], [f"{TYC_STATS_FIXTURE_URL}: {exc}"]
 
     def _scrape_futbolargentino(
         self,
@@ -750,21 +889,23 @@ class PublicScrapingProvider:
             warnings.append(f"Tabla de posiciones de contraste no disponible: {zones_error}")
         expected = expected_played_count(zones) if zones else None
         tyc_records, tyc_sources, tyc_errors = self._scrape_tyc()
+        tyc_stats_records, tyc_stats_sources, tyc_stats_errors = self._scrape_tyc_stats()
         fa_records, fa_sources, fa_errors = self._scrape_futbolargentino(
             expected_played=expected
         )
         tyc_played = sum(_played(row) for row in tyc_records)
+        tyc_stats_played = sum(_played(row) for row in tyc_stats_records)
         fa_played = sum(_played(row) for row in fa_records)
         base_played = sum(_played(row) for row in base_records)
         bootstrap_played = sum(_played(row) for row in bootstrap_records)
         snapshot_played = sum(_played(row) for row in snapshot_records)
         # Si el feed principal no explica la tabla actual, consultar además las notas
         # oficiales de resultados. Siempre se buscan agendas para completar fechas.
-        known_before_lpf = max(base_played, bootstrap_played, snapshot_played, tyc_played, fa_played)
+        known_before_lpf = max(base_played, bootstrap_played, snapshot_played, tyc_played, tyc_stats_played, fa_played)
         need_official_results = expected is None or known_before_lpf < expected
         lpf_records, lpf_sources, lpf_errors = self._scrape_lpf(need_results=need_official_results)
 
-        live_records = list(tyc_records) + list(fa_records) + list(lpf_records)
+        live_records = list(tyc_records) + list(tyc_stats_records) + list(fa_records) + list(lpf_records)
         reconciled, conflicts = _reconcile_records(base_records, bootstrap_records, snapshot_records, live_records)
         warnings.extend(conflicts)
 
@@ -781,6 +922,8 @@ class PublicScrapingProvider:
 
         if tyc_errors and not tyc_records:
             warnings.append("TyC Sports no respondió correctamente: " + " | ".join(tyc_errors[:1]))
+        if tyc_stats_errors and not tyc_stats_records:
+            warnings.append("TyC Estadísticas no respondió correctamente: " + " | ".join(tyc_stats_errors[:1]))
         if fa_errors and not fa_records:
             warnings.append("FutbolArgentino no respondió correctamente: " + " | ".join(fa_errors[:2]))
         if lpf_errors and not lpf_records:
@@ -820,7 +963,7 @@ class PublicScrapingProvider:
                 {
                     "finished_matches": finished,
                     "expected_played_matches": expected,
-                    "sources": tyc_sources + fa_sources + lpf_sources + ([zones_source] if zones_source else []),
+                    "sources": tyc_sources + tyc_stats_sources + fa_sources + lpf_sources + ([zones_source] if zones_source else []),
                 },
             )
         if save_warning:
@@ -833,7 +976,7 @@ class PublicScrapingProvider:
         else:
             chronology_basis = "round"
 
-        sources = list(dict.fromkeys(tyc_sources + fa_sources + lpf_sources + ([zones_source] if zones_source else [])))
+        sources = list(dict.fromkeys(tyc_sources + tyc_stats_sources + fa_sources + lpf_sources + ([zones_source] if zones_source else [])))
         if not sources:
             sources = list(base.metadata.get("sources") or [])
 
@@ -876,6 +1019,11 @@ class PublicScrapingProvider:
                     "finished": tyc_played,
                     "dated": sum(bool(str(row.get("scheduled_at") or "")) for row in tyc_records),
                 },
+                "TyC Estadísticas": {
+                    "records": len(tyc_stats_records),
+                    "finished": tyc_stats_played,
+                    "dated": sum(bool(str(row.get("scheduled_at") or "")) for row in tyc_stats_records),
+                },
                 "FutbolArgentino.com": {
                     "records": len(fa_records),
                     "finished": fa_played,
@@ -888,6 +1036,6 @@ class PublicScrapingProvider:
                 },
             },
             "warnings": warnings,
-            "source_errors": tyc_errors + fa_errors + lpf_errors + ([zones_error] if zones_error else []),
+            "source_errors": tyc_errors + tyc_stats_errors + fa_errors + lpf_errors + ([zones_error] if zones_error else []),
         }
         return self._records_to_dataset(reconciled, base, metadata)

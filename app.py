@@ -7,6 +7,7 @@ from football_lab.data.calculator_adapter import ExistingCalculatorProvider
 from football_lab.data.csv_provider import DataFrameProvider
 from football_lab.data.scraping_provider import PublicScrapingProvider
 from football_lab.services.lab_service import LabService
+from football_lab.release import APP_BUILD_ID, APP_BUILD_LABEL, MIN_VERIFIED_FINISHED
 from football_lab.ui.pages import PAGES, render_page
 
 
@@ -19,15 +20,16 @@ def offline_service():
 
 
 @st.cache_resource(ttl=900, show_spinner="Actualizando resultados y programación desde fuentes públicas...")
-def web_service(refresh_token: int):
+def web_service(refresh_token: int, build_id: str):
     # refresh_token forma parte de la clave de caché: el botón permite forzar un
     # nuevo scraping sin acoplar la capa de datos a Streamlit.
-    _ = refresh_token
+    _ = (refresh_token, build_id)
     return LabService(PublicScrapingProvider())
 
 
 st.sidebar.title("Laboratorio")
 st.sidebar.caption("Datos públicos · sin leakage · sin Opta obligatorio")
+st.sidebar.caption(f"Build {APP_BUILD_ID} · {APP_BUILD_LABEL}")
 
 if "web_refresh_token" not in st.session_state:
     st.session_state.web_refresh_token = 0
@@ -40,10 +42,10 @@ source_mode = st.sidebar.radio(
 )
 
 if source_mode.startswith("Web"):
-    if st.sidebar.button("Actualizar ahora", use_container_width=True):
+    if st.sidebar.button("Actualizar ahora", width="stretch"):
         st.session_state.web_refresh_token += 1
     try:
-        service = web_service(st.session_state.web_refresh_token)
+        service = web_service(st.session_state.web_refresh_token, APP_BUILD_ID)
     except Exception as exc:
         st.sidebar.error(f"Falló el proveedor web: {exc}")
         service = offline_service()
@@ -65,6 +67,11 @@ if uploaded is not None:
         st.sidebar.error(f"No pude usar el CSV: {exc}")
 
 quality = service.data_quality()
+if source_mode.startswith("Web") and uploaded is None and quality.get("finished_matches", 0) < MIN_VERIFIED_FINISHED:
+    st.sidebar.error(
+        f"Build {APP_BUILD_ID}: el proveedor quedó por debajo del piso verificado de {MIN_VERIFIED_FINISHED} resultados. "
+        "Esto indica que el deploy no tiene todos los archivos del hotfix o está ejecutando una versión anterior."
+    )
 if quality.get("current_round"):
     st.sidebar.caption(f"Fecha actual detectada: {quality['current_round']}")
 if quality.get("expected_played_matches") is not None:

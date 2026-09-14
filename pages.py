@@ -4,6 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from football_lab.config import LabConfig
+from football_lab.release import APP_BUILD_ID
 from football_lab.ui.charts import comparison_bars, elo_history_chart, form_trend_chart, radar_chart
 
 
@@ -33,7 +34,7 @@ def _explainers():
 def home_page(service):
     quality = service.data_quality()
     st.title("Laboratorio de análisis del fútbol argentino")
-    st.caption("V1 descriptiva y explicable. Funciona sin Opta y no inventa métricas que la fuente no entrega.")
+    st.caption(f"V1 descriptiva y explicable · build {APP_BUILD_ID}. Funciona sin Opta y no inventa métricas que la fuente no entrega.")
     if quality.get("updated_at"):
         mode = "scraping web" if quality.get("live_results_ok") else ("snapshot" if quality.get("snapshot_used") else "respaldo local")
         stamp = pd.to_datetime(quality["updated_at"], errors="coerce", utc=True)
@@ -80,14 +81,14 @@ def home_page(service):
             stamp = pd.to_datetime(m.get("match_date"), errors="coerce")
             when = stamp.strftime("%d/%m %H:%M") if not pd.isna(stamp) else f"Fecha {m['round']}"
             rows.append({"Cuándo": when, "Fecha": m["round"], "Local": m["home_team"], "Visitante": m["away_team"]})
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
     else:
         st.info("No hay próximos partidos identificados con la fuente actual.")
 
     rankings = service.get_rankings()["rankings"]
     top = sorted(rankings["elo"].items(), key=lambda kv: kv[1], reverse=True)[:5]
     st.subheader("Elo destacado")
-    st.dataframe(pd.DataFrame([{"Equipo": t, "Elo": round(v, 1)} for t, v in top]), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame([{"Equipo": t, "Elo": round(v, 1)} for t, v in top]), width="stretch", hide_index=True)
 
 
 def team_page(service):
@@ -116,7 +117,7 @@ def team_page(service):
     st.dataframe(pd.DataFrame([
         {"Condición": "Local", **venue["home"]},
         {"Condición": "Visitante", **venue["away"]},
-    ]), use_container_width=True, hide_index=True)
+    ]), width="stretch", hide_index=True)
     if p.get("narrative"):
         st.success(p["narrative"])
     _unavailable("xG y calidad de remates", p["attack_quality"])
@@ -141,10 +142,10 @@ def comparison_page(service):
         ("Colley", a["strength"].get("colley"), b["strength"].get("colley")),
         ("PageRank", a["strength"].get("pagerank"), b["strength"].get("pagerank")),
     ]
-    st.dataframe(pd.DataFrame([{"Métrica": m, team_a: _fmt(x), team_b: _fmt(y)} for m, x, y in rows]), use_container_width=True, hide_index=True)
-    st.plotly_chart(comparison_bars(team_a, team_b, a, b), use_container_width=True)
+    st.dataframe(pd.DataFrame([{"Métrica": m, team_a: _fmt(x), team_b: _fmt(y)} for m, x, y in rows]), width="stretch", hide_index=True)
+    st.plotly_chart(comparison_bars(team_a, team_b, a, b), width="stretch")
     with st.expander("Radar normalizado"):
-        st.plotly_chart(radar_chart(team_a, team_b, a, b), use_container_width=True)
+        st.plotly_chart(radar_chart(team_a, team_b, a, b), width="stretch")
     st.success(data["narrative"])
 
 
@@ -170,7 +171,7 @@ def match_page(service):
         {"Indicador": "Colley", match["home_team"]: h["strength"].get("colley"), match["away_team"]: a["strength"].get("colley")},
         {"Indicador": "PageRank", match["home_team"]: h["strength"].get("pagerank"), match["away_team"]: a["strength"].get("pagerank")},
     ])
-    st.dataframe(table, use_container_width=True, hide_index=True)
+    st.dataframe(table, width="stretch", hide_index=True)
     st.subheader("Ventajas relativas")
     narr = payload["narrative"]
     c1, c2 = st.columns(2)
@@ -186,8 +187,8 @@ def form_page(service):
     st.title("Forma")
     team = st.selectbox("Equipo", service.teams, key="form_team")
     rows = [m.to_dict() for m in service.repository.team_history(team)]
-    st.plotly_chart(form_trend_chart(rows, team), use_container_width=True)
-    st.dataframe(pd.DataFrame(rows[-10:]), use_container_width=True, hide_index=True)
+    st.plotly_chart(form_trend_chart(rows, team), width="stretch")
+    st.dataframe(pd.DataFrame(rows[-10:]), width="stretch", hide_index=True)
 
 
 def rankings_page(service):
@@ -195,9 +196,9 @@ def rankings_page(service):
     data = service.get_rankings()["rankings"]
     teams = service.teams
     df = pd.DataFrame([{ "Equipo": team, "Elo": data["elo"].get(team), "Pos. Elo": data["elo_rank"].get(team), "Colley": data["colley"].get(team), "Pos. Colley": data["colley_rank"].get(team), "PageRank": data["pagerank"].get(team), "Pos. PageRank": data["pagerank_rank"].get(team)} for team in teams]).sort_values("Pos. Elo")
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
     selected = st.multiselect("Evolución Elo", teams, default=teams[:2], max_selections=5)
-    st.plotly_chart(elo_history_chart(data["elo_history"], selected), use_container_width=True)
+    st.plotly_chart(elo_history_chart(data["elo_history"], selected), width="stretch")
     _explainers()
 
 
@@ -260,14 +261,14 @@ def quality_page(service):
                 "Resultados finales": values.get("finished", 0),
                 "Partidos con fecha": values.get("dated", 0),
             })
-        st.dataframe(pd.DataFrame(source_rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(source_rows), width="stretch", hide_index=True)
 
     for issue in q["issues"]:
         if issue["level"] == "blocked": st.error(issue["message"])
         elif issue["level"] == "warning": st.warning(issue["message"])
         else: st.info(issue["message"])
     st.subheader("Disponibilidad")
-    st.dataframe(pd.DataFrame([{"Variable": k, "Disponible": "Sí" if v else "No"} for k, v in q["availability"].items()]), use_container_width=True, hide_index=True)
+    st.dataframe(pd.DataFrame([{"Variable": k, "Disponible": "Sí" if v else "No"} for k, v in q["availability"].items()]), width="stretch", hide_index=True)
     st.code("La app nunca convierte una ausencia de eventos/xG/fechas en un cero. La marca como no disponible.", language=None)
 
 
