@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import datetime, time, timezone
 from pathlib import Path
 from typing import Callable, Iterable, Mapping, Sequence
 from urllib.parse import urljoin, urlparse
@@ -45,6 +45,10 @@ LPF_PRIMERA_URL = "https://www.ligaprofesional.ar/notas/primera/"
 LPF_PRIMERA_PAGES = (
     LPF_PRIMERA_URL,
     f"{LPF_PRIMERA_URL}page/2/",
+)
+TYC_FIXTURE_RESULTS_URL = (
+    "https://www.tycsports.com/liga-profesional-de-futbol/"
+    "fixture-del-clausura-2026-calendario-de-partidos-y-resultados-id750943.html"
 )
 
 
@@ -187,6 +191,180 @@ def parse_lpf_schedule_article_html(
     return rows
 
 
+
+def parse_tyc_fixture_results_html(
+    html: str,
+    *,
+    official_fixture: Sequence[Mapping[str, object]] = LPF_FIXTURE,
+    default_year: int = 2026,
+    source_url: str = TYC_FIXTURE_RESULTS_URL,
+) -> list[dict]:
+    """Extrae fixture y resultados del artículo vivo de TyC Sports.
+
+    TyC mantiene una nota única con dos bloques útiles: arriba publica la agenda
+    actual/futura y transforma en marcador los partidos ya jugados; más abajo
+    conserva el historial de resultados por fecha. Se usa como segunda columna
+    vertebral porque su estructura es independiente de FutbolArgentino.
+
+    Cuando un resultado histórico sólo informa el día pero no la hora, se guarda
+    a las 23:59 de Argentina. Es deliberadamente conservador: evita que ese
+    partido pueda entrar como información previa para otro encuentro del mismo día.
+    """
+    try:
+        from bs4 import BeautifulSoup
+    except Exception as exc:  # pragma: no cover - dependencia declarada
+        raise RuntimeError(f"BeautifulSoup no está disponible: {exc}") from exc
+
+    fixture_index = official_fixture_index(official_fixture)
+    expected = {team for pair in fixture_index for team in pair}
+    soup = BeautifulSoup(html or "", "lxml")
+    for tag in soup(["script", "style", "noscript", "svg"]):
+        tag.decompose()
+    container = soup.find("article") or soup.find("main") or soup
+
+    blocks: list[str] = []
+    for tag in container.find_all(["h2", "h3", "h4", "p", "li"]):
+        text_value = _clean_text(tag.get_text(" ", strip=True))
+        if text_value:
+            blocks.append(text_value)
+
+    rows: list[dict] = []
+    mode: str | None = None
+    current_round: int | None = None
+    current_day = None
+
+    def add_row(row: dict) -> None:
+        home = str(row.get("home") or "")
+        away = str(row.get("away") or "")
+        key = (home, away)
+        meta = fixture_index.get(key)
+        if not meta:
+            return
+        fixture_round = int(meta.get("round") or 0)
+        if current_round is not None and fixture_round != current_round:
+            return
+        row["round"] = fixture_round
+        rows.append(row)
+
+    for text_value in blocks:
+        low = text_value.lower()
+        if "resultados del torneo clausura 2026" in low:
+            mode = "results"
+            current_round = None
+            current_day = None
+            continue
+        if "fixture del torneo clausura 2026" in low and (
+            "cruces" in low or "calendario" in low or "fechas" in low
+        ):
+            mode = "fixture"
+            current_round = None
+            current_day = None
+            continue
+        if mode is None:
+            continue
+
+        round_match = re.search(r"\bFecha\s+(\d{1,2})\b", text_value, flags=re.I)
+        if round_match:
+            value = int(round_match.group(1))
+            if 1 <= value <= 16:
+                current_round = value
+                current_day = None
+            continue
+
+        parsed_day = parse_spanish_date(text_value, default_year=default_year)
+        # Una línea de partido también contiene números, pero no nombres de meses.
+        if parsed_day is not None:
+            current_day = parsed_day
+            continue
+
+        if current_round is None:
+            continue
+
+        # Marcadores: "Boca 3-1 Central Córdoba". El score sirve como separador
+        # robusto incluso cuando el CMS omite espacios ("Mza.2-1").
+        score_match = re.search(r"(?<!\d)(\d+)\s*[-–—]\s*(\d+)(?!\d)", text_value)
+        if score_match:
+            home_token = text_value[: score_match.start()].strip(" ·-–—\u00a0")
+            away_token = text_value[score_match.end() :].strip(" ·-–—\u00a0")
+            home = resolve_team_token(home_token, canon_club=canon_club, expected_teams=expected)
+            away = resolve_team_token(away_token, canon_club=canon_club, expected_teams=expected)
+            if home and away and home != away:
+                dt = (
+                    datetime.combine(current_day, time(23, 59), tzinfo=ARG_TZ).isoformat()
+                    if current_day is not None
+                    else ""
+                )
+                add_row(
+                    {
+                        "match_id": f"TYC-F{current_round:02d}-{slug(home)}-{slug(away)}",
+                        "round": current_round,
+                        "home": home,
+                        "away": away,
+                        "scheduled_at": dt,
+                        "status": "played",
+                        "home_score": int(score_match.group(1)),
+                        "away_score": int(score_match.group(2)),
+                        "source": "TyC Sports",
+                        "source_url": source_url,
+                    }
+                )
+            continue
+
+        # Agenda con hora: "19.00 Banfield – Barracas Central (Zona B)".
+        schedule_match = re.match(
+            r"^(?P<clock>\d{1,2}[.:]\d{2})\s+(?P<home>.+?)\s+[–—-]\s+(?P<away>.+)$",
+            text_value,
+        )
+        if schedule_match and current_day is not None:
+            clock = parse_clock(schedule_match.group("clock"))
+            if clock is None:
+                continue
+            home_token = _clean_text(schedule_match.group("home"))
+            away_token = _clean_text(schedule_match.group("away"))
+            # Quitar sólo la anotación competitiva final, no paréntesis que forman
+            # parte del nombre (por ejemplo Estudiantes (Río Cuarto)).
+            away_token = re.sub(
+                r"\s+\((?:Zona\s+[AB]|Interzonal)\)\s*$",
+                "",
+                away_token,
+                flags=re.I,
+            )
+            home = resolve_team_token(home_token, canon_club=canon_club, expected_teams=expected)
+            away = resolve_team_token(away_token, canon_club=canon_club, expected_teams=expected)
+            if home and away and home != away:
+                add_row(
+                    {
+                        "match_id": f"TYC-SCHED-F{current_round:02d}-{slug(home)}-{slug(away)}",
+                        "round": current_round,
+                        "home": home,
+                        "away": away,
+                        "scheduled_at": datetime.combine(current_day, clock, tzinfo=ARG_TZ).isoformat(),
+                        "status": "scheduled",
+                        "home_score": None,
+                        "away_score": None,
+                        "source": "TyC Sports",
+                        "source_url": source_url,
+                    }
+                )
+
+    if not rows:
+        raise RuntimeError("no pude identificar fixture/resultados del Clausura en TyC Sports")
+
+    # Una misma pareja puede aparecer en el bloque de fixture y en el histórico.
+    # Conservar el marcador si existe; en igualdad, la fila con fecha/hora.
+    best: dict[tuple[str, str], dict] = {}
+    for row in rows:
+        key = (str(row["home"]), str(row["away"]))
+        previous = best.get(key)
+        if previous is None:
+            best[key] = row
+            continue
+        rank = (1 if _played(row) else 0, 1 if row.get("scheduled_at") else 0)
+        prev_rank = (1 if _played(previous) else 0, 1 if previous.get("scheduled_at") else 0)
+        if rank > prev_rank:
+            best[key] = row
+    return list(best.values())
+
 def _record_from_match(match: Match) -> dict:
     return {
         "match_id": match.match_id,
@@ -212,11 +390,15 @@ def _played(record: Mapping[str, object]) -> bool:
 def _source_priority(record: Mapping[str, object]) -> int:
     source = str(record.get("source") or "").lower()
     if "liga profesional" in source:
-        return 50
+        return 60
     if "futbolargentino" in source:
-        return 40
+        return 55
+    if "tyc sports" in source:
+        return 50
+    if "seed tyc" in source:
+        return 35
     if "snapshot" in source:
-        return 25
+        return 30
     if "calculadora" in source:
         return 20
     return 10
@@ -224,13 +406,14 @@ def _source_priority(record: Mapping[str, object]) -> int:
 
 def _reconcile_records(
     base_records: Iterable[Mapping[str, object]],
+    bootstrap_records: Iterable[Mapping[str, object]],
     snapshot_records: Iterable[Mapping[str, object]],
     live_records: Iterable[Mapping[str, object]],
 ) -> tuple[list[dict], list[str]]:
     """Reconcilia por pareja sin permitir que una fuente parcial haga retroceder datos.
 
     Marcadores finales tienen prioridad sobre estados en vivo/programados. Entre dos
-    marcadores finales, LPF oficial > FutbolArgentino > snapshot > base incluida.
+    marcadores finales, LPF oficial > FutbolArgentino > TyC Sports > snapshot > base incluida.
     Las fechas se completan por separado para conservar, por ejemplo, un marcador
     validado localmente y la hora oficial obtenida por scraping.
     """
@@ -238,7 +421,7 @@ def _reconcile_records(
     buckets: dict[tuple[str, str], list[Mapping[str, object]]] = {
         pair: [] for pair in fixture
     }
-    for row in list(base_records) + list(snapshot_records) + list(live_records):
+    for row in list(base_records) + list(bootstrap_records) + list(snapshot_records) + list(live_records):
         key = (str(row.get("home") or ""), str(row.get("away") or ""))
         if key in buckets:
             buckets[key].append(row)
@@ -306,8 +489,8 @@ def _reconcile_records(
 class PublicScrapingProvider:
     """Proveedor operativo sin APIs pagas.
 
-    Fuente principal: FutbolArgentino.com (HTML). Complemento/contraste: notas de
-    Primera de la LPF oficial. Si la red o un sitio falla, usa una snapshot reciente
+    Fuentes principales: TyC Sports + FutbolArgentino.com (HTML). Complemento/contraste:
+    notas de Primera de la LPF oficial. Si la red o un sitio falla, usa una snapshot reciente
     y por último la base incluida de la Calculadora LPF. Nunca elimina un resultado
     ya conocido porque un scraping parcial devuelva menos partidos.
     """
@@ -334,6 +517,19 @@ class PublicScrapingProvider:
         if self.html_getter is not None:
             return self.html_getter(url, referer=referer, timeout=self.timeout)
         return fetch_html(url, referer=referer, timeout=self.timeout, retries=0)
+
+    def _load_bootstrap(self) -> tuple[list[dict], str | None]:
+        path = self.root / "data" / "bootstrap" / "lpf_clausura_2026_20260914.json"
+        if not path.exists():
+            return [], None
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            records = list(payload.get("records") or [])
+            return records, str(payload.get("saved_at") or "") or None
+        except Exception:
+            # El bootstrap es una red de seguridad; una copia dañada no debe impedir
+            # que las fuentes web o la base histórica sigan funcionando.
+            return [], None
 
     def _load_snapshot(self) -> tuple[list[dict], float | None, str | None]:
         if not self.snapshot_path.exists():
@@ -372,6 +568,19 @@ class PublicScrapingProvider:
             return None
         except Exception as exc:
             return f"No pude guardar la snapshot web: {exc}"
+
+    def _scrape_tyc(self) -> tuple[list[dict], list[str], list[str]]:
+        try:
+            html, final_url = self._get_html(TYC_FIXTURE_RESULTS_URL)
+            source_url = final_url or TYC_FIXTURE_RESULTS_URL
+            rows = parse_tyc_fixture_results_html(
+                html,
+                official_fixture=LPF_FIXTURE,
+                source_url=source_url,
+            )
+            return rows, [source_url], []
+        except Exception as exc:
+            return [], [], [f"{TYC_FIXTURE_RESULTS_URL}: {exc}"]
 
     def _scrape_futbolargentino(
         self,
@@ -519,6 +728,14 @@ class PublicScrapingProvider:
     def load(self) -> ProviderDataset:
         base = ExistingCalculatorProvider(self.root).load()
         base_records = [_record_from_match(m) for m in base.matches]
+        bootstrap_records, bootstrap_saved_at = self._load_bootstrap()
+        bootstrap_age = None
+        if bootstrap_saved_at:
+            bootstrap_dt = parse_datetime(bootstrap_saved_at)
+            if bootstrap_dt is not None:
+                if bootstrap_dt.tzinfo is None:
+                    bootstrap_dt = bootstrap_dt.replace(tzinfo=timezone.utc)
+                bootstrap_age = (self.now() - bootstrap_dt.astimezone(timezone.utc)).total_seconds() / 3600.0
         snapshot_records, snapshot_age, snapshot_error = self._load_snapshot()
 
         warnings: list[str] = []
@@ -532,20 +749,23 @@ class PublicScrapingProvider:
         if zones_error:
             warnings.append(f"Tabla de posiciones de contraste no disponible: {zones_error}")
         expected = expected_played_count(zones) if zones else None
+        tyc_records, tyc_sources, tyc_errors = self._scrape_tyc()
         fa_records, fa_sources, fa_errors = self._scrape_futbolargentino(
             expected_played=expected
         )
+        tyc_played = sum(_played(row) for row in tyc_records)
         fa_played = sum(_played(row) for row in fa_records)
         base_played = sum(_played(row) for row in base_records)
+        bootstrap_played = sum(_played(row) for row in bootstrap_records)
         snapshot_played = sum(_played(row) for row in snapshot_records)
         # Si el feed principal no explica la tabla actual, consultar además las notas
         # oficiales de resultados. Siempre se buscan agendas para completar fechas.
-        known_before_lpf = max(base_played, snapshot_played, fa_played)
+        known_before_lpf = max(base_played, bootstrap_played, snapshot_played, tyc_played, fa_played)
         need_official_results = expected is None or known_before_lpf < expected
         lpf_records, lpf_sources, lpf_errors = self._scrape_lpf(need_results=need_official_results)
 
-        live_records = list(fa_records) + list(lpf_records)
-        reconciled, conflicts = _reconcile_records(base_records, snapshot_records, live_records)
+        live_records = list(tyc_records) + list(fa_records) + list(lpf_records)
+        reconciled, conflicts = _reconcile_records(base_records, bootstrap_records, snapshot_records, live_records)
         warnings.extend(conflicts)
 
         finished = sum(_played(row) for row in reconciled)
@@ -559,6 +779,8 @@ class PublicScrapingProvider:
             str(row.get("source") or "").startswith("Snapshot") for row in reconciled
         )
 
+        if tyc_errors and not tyc_records:
+            warnings.append("TyC Sports no respondió correctamente: " + " | ".join(tyc_errors[:1]))
         if fa_errors and not fa_records:
             warnings.append("FutbolArgentino no respondió correctamente: " + " | ".join(fa_errors[:2]))
         if lpf_errors and not lpf_records:
@@ -592,13 +814,13 @@ class PublicScrapingProvider:
         # cuando existe tabla de contraste, la cobertura alcanza al menos esa foto.
         save_warning = None
         snapshot_coverage_ok = expected is None or finished >= expected
-        if live_results_ok and finished >= base_played and snapshot_coverage_ok:
+        if live_results_ok and finished >= max(base_played, bootstrap_played) and snapshot_coverage_ok:
             save_warning = self._save_snapshot(
                 reconciled,
                 {
                     "finished_matches": finished,
                     "expected_played_matches": expected,
-                    "sources": fa_sources + lpf_sources + ([zones_source] if zones_source else []),
+                    "sources": tyc_sources + fa_sources + lpf_sources + ([zones_source] if zones_source else []),
                 },
             )
         if save_warning:
@@ -611,7 +833,7 @@ class PublicScrapingProvider:
         else:
             chronology_basis = "round"
 
-        sources = list(dict.fromkeys(fa_sources + lpf_sources + ([zones_source] if zones_source else [])))
+        sources = list(dict.fromkeys(tyc_sources + fa_sources + lpf_sources + ([zones_source] if zones_source else [])))
         if not sources:
             sources = list(base.metadata.get("sources") or [])
 
@@ -637,8 +859,35 @@ class PublicScrapingProvider:
             "standings_mismatches": standings_mismatches,
             "finished_matches": finished,
             "base_finished_matches": base_played,
+            "bootstrap_finished_matches": bootstrap_played,
+            "bootstrap_saved_at": bootstrap_saved_at,
+            "bootstrap_age_hours": bootstrap_age,
+            "bootstrap_records_used": sum(1 for row in reconciled if "seed tyc" in str(row.get("source") or "").lower()),
             "web_finished_matches": live_finished,
+            "current_round": max((int(row.get("round") or 0) for row in reconciled if _played(row)), default=0) or None,
+            "source_health": {
+                "Bootstrap 14/09": {
+                    "records": len(bootstrap_records),
+                    "finished": bootstrap_played,
+                    "dated": sum(bool(str(row.get("scheduled_at") or "")) for row in bootstrap_records),
+                },
+                "TyC Sports": {
+                    "records": len(tyc_records),
+                    "finished": tyc_played,
+                    "dated": sum(bool(str(row.get("scheduled_at") or "")) for row in tyc_records),
+                },
+                "FutbolArgentino.com": {
+                    "records": len(fa_records),
+                    "finished": fa_played,
+                    "dated": sum(bool(str(row.get("scheduled_at") or "")) for row in fa_records),
+                },
+                "Liga Profesional": {
+                    "records": len(lpf_records),
+                    "finished": sum(_played(row) for row in lpf_records),
+                    "dated": sum(bool(str(row.get("scheduled_at") or "")) for row in lpf_records),
+                },
+            },
             "warnings": warnings,
-            "source_errors": fa_errors + lpf_errors + ([zones_error] if zones_error else []),
+            "source_errors": tyc_errors + fa_errors + lpf_errors + ([zones_error] if zones_error else []),
         }
         return self._records_to_dataset(reconciled, base, metadata)

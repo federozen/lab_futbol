@@ -56,10 +56,16 @@ def data_quality_report(dataset: ProviderDataset) -> dict:
             age = meta.get("snapshot_age_hours")
             suffix = f" ({float(age):.1f} h de antigüedad)" if isinstance(age, (int, float)) else ""
             issues.append({"level": "warning", "message": f"No pude actualizar marcadores en esta ejecución; se usan resultados de la última snapshot válida{suffix}."})
+        elif meta.get("bootstrap_records_used") and isinstance(meta.get("bootstrap_age_hours"), (int, float)) and float(meta.get("bootstrap_age_hours")) <= 48:
+            age = float(meta.get("bootstrap_age_hours"))
+            issues.append({
+                "level": "warning",
+                "message": f"Las webs no respondieron en esta ejecución. Se conserva el bootstrap editorial verificado del 14/09 ({age:.1f} h de antigüedad), con historial hasta la Fecha 9.",
+            })
         else:
             issues.append({
                 "level": "blocked",
-                "message": "No pude actualizar marcadores desde la web ni recuperar una snapshot reciente. Los resultados provienen de la base incluida y no deben tratarse como una foto de hoy.",
+                "message": "No pude actualizar marcadores desde la web ni recuperar una snapshot/bootstrap reciente. La foto no debe tratarse como estado actual.",
             })
     elif not meta.get("live_fetch_ok", True):
         issues.append({"level": "warning", "message": "No hubo datos web nuevos en esta ejecución."})
@@ -106,11 +112,15 @@ def data_quality_report(dataset: ProviderDataset) -> dict:
         "sources": meta.get("sources", []),
         "chronology_basis": meta.get("chronology_basis", "unknown"),
         "updated_at": meta.get("updated_at"),
+        "current_round": meta.get("current_round"),
+        "source_health": meta.get("source_health", {}),
         "live_fetch_ok": meta.get("live_fetch_ok"),
         "live_results_ok": meta.get("live_results_ok"),
         "live_schedule_ok": meta.get("live_schedule_ok"),
         "snapshot_used": bool(meta.get("snapshot_used")),
         "snapshot_age_hours": meta.get("snapshot_age_hours"),
+        "bootstrap_records_used": meta.get("bootstrap_records_used", 0),
+        "bootstrap_age_hours": meta.get("bootstrap_age_hours"),
         "issues": issues,
         "status": "blocked" if any(i["level"] == "blocked" for i in issues) else "warning" if any(i["level"] == "warning" for i in issues) else "ok",
     }

@@ -114,3 +114,102 @@ def test_schedule_parser_preserves_lines_separated_by_br():
         "2026-09-11T21:30:00"
     )
     assert (10, "Central Córdoba", "Defensa y Justicia") in pairs
+
+
+def test_tyc_parser_reads_historical_results_and_current_fixture():
+    from football_lab.data.scraping_provider import parse_tyc_fixture_results_html
+
+    html = """
+    <article>
+      <h2>El fixture del Torneo Clausura 2026: cruces y fechas</h2>
+      <h4>Fecha 9</h4>
+      <h4>Viernes 11 de septiembre</h4>
+      <ul>
+        <li>Newell’s 1-1 Vélez</li>
+        <li>Defensa y Justicia 2-0 Gimnasia (Mza.)</li>
+        <li>Boca 3-1 Central Córdoba</li>
+      </ul>
+      <p>Lunes 14 de septiembre</p>
+      <ul>
+        <li>19.00 Deportivo Riestra – Lanús (Zona A)</li>
+        <li>19.00 Banfield – Barracas Central (Zona B)</li>
+        <li>21.15 Instituto – Estudiantes (Río Cuarto) (Interzonal)</li>
+      </ul>
+      <h2>Resultados del Torneo Clausura 2026</h2>
+      <h4>Fecha 1</h4>
+      <p>Jueves 23 de julio</p>
+      <ul>
+        <li>Belgrano 2-1 Rosario Central</li>
+        <li>Sarmiento 2-3 Argentinos</li>
+        <li>Defensa y Justicia 1-1 Aldosivi</li>
+      </ul>
+      <p>Domingo 26 de julio</p>
+      <ul><li>Deportivo Riestra 3-0 Boca</li></ul>
+    </article>
+    """
+    rows = parse_tyc_fixture_results_html(html)
+    keyed = {(r["round"], r["home"], r["away"]): r for r in rows}
+
+    belgrano = keyed[(1, "Belgrano", "Rosario Central")]
+    assert belgrano["status"] == "played"
+    assert (belgrano["home_score"], belgrano["away_score"]) == (2, 1)
+    # Resultado sin hora exacta: fin de día para no filtrar información a otro
+    # partido de esa misma jornada/día.
+    assert belgrano["scheduled_at"].startswith("2026-07-23T23:59:00")
+
+    boca = keyed[(9, "Boca Juniors", "Central Córdoba")]
+    assert boca["status"] == "played"
+    assert (boca["home_score"], boca["away_score"]) == (3, 1)
+    assert boca["scheduled_at"].startswith("2026-09-11T23:59:00")
+
+    instituto = keyed[(9, "Instituto", "Estudiantes de Río Cuarto")]
+    assert instituto["status"] == "scheduled"
+    assert instituto["scheduled_at"].startswith("2026-09-14T21:15:00")
+
+
+def test_bootstrap_keeps_fecha_9_usable_when_all_web_sources_fail():
+    root = Path(__file__).resolve().parents[1]
+
+    def fail_get(url, *, referer="", timeout=8):
+        raise RuntimeError("sin red")
+
+    provider = PublicScrapingProvider(
+        root,
+        html_getter=fail_get,
+        now=lambda: datetime(2026, 9, 14, 19, 0, tzinfo=timezone.utc),
+    )
+    dataset = provider.load()
+    finished = [m for m in dataset.matches if m.finished]
+    dated_finished = [m for m in finished if m.match_date is not None]
+    assert len(finished) == 132
+    assert len(dated_finished) == 132
+    assert dataset.metadata["current_round"] == 9
+    assert dataset.metadata["bootstrap_finished_matches"] == 132
+
+    riestra_lanus = next(
+        m for m in dataset.matches
+        if m.round == 9 and m.home_team == "Deportivo Riestra" and m.away_team == "Lanús"
+    )
+    assert not riestra_lanus.finished
+    assert riestra_lanus.match_date is not None
+    assert riestra_lanus.match_date.isoformat().startswith("2026-09-14T19:00:00")
+
+
+def test_recent_bootstrap_is_warning_not_block_when_network_is_down():
+    from football_lab.services.data_quality_service import data_quality_report
+
+    root = Path(__file__).resolve().parents[1]
+
+    def fail_get(url, *, referer="", timeout=8):
+        raise RuntimeError("sin red")
+
+    dataset = PublicScrapingProvider(
+        root,
+        html_getter=fail_get,
+        now=lambda: datetime(2026, 9, 14, 19, 0, tzinfo=timezone.utc),
+    ).load()
+    quality = data_quality_report(dataset)
+    assert quality["finished_matches"] == 132
+    assert quality["dated_finished_matches"] == 132
+    assert quality["status"] == "warning"
+    assert not any(issue["level"] == "blocked" for issue in quality["issues"])

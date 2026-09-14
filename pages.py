@@ -39,15 +39,39 @@ def home_page(service):
         stamp = pd.to_datetime(quality["updated_at"], errors="coerce", utc=True)
         when = stamp.tz_convert("America/Argentina/Buenos_Aires").strftime("%d/%m/%Y %H:%M ARG") if not pd.isna(stamp) else quality["updated_at"]
         st.caption(f"Último intento de actualización: {when} · modo efectivo: {mode}.")
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Partidos cargados", quality["loaded_matches"])
+
+    current_round = quality.get("current_round")
+    expected_played = quality.get("expected_played_matches")
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Fecha actual", current_round if current_round else "—")
     c2.metric("Terminados", quality["finished_matches"])
-    c3.metric("Equipos", quality["teams"])
+    c3.metric("Control esperado", expected_played if expected_played is not None else "—")
     c4.metric("Resultados fechados", quality.get("dated_finished_matches", 0))
+    c5.metric("Equipos", quality["teams"])
+
     if quality["status"] == "blocked":
-        st.error("La foto no está completa respecto del control disponible. Mirá Calidad de datos antes de usarla como estado actual.")
+        if expected_played is not None and quality["finished_matches"] < expected_played:
+            st.error(
+                f"La actualización está incompleta: hay {quality['finished_matches']} resultados cargados y el control público "
+                f"indica {expected_played}. Hasta completar los faltantes, no conviene usar forma ni rankings como foto de hoy."
+            )
+        else:
+            st.error("La foto actual tiene un bloqueo de calidad. Abrí Calidad de datos para ver exactamente qué control no cierra.")
     elif quality["status"] == "warning":
         st.warning("La base es utilizable, pero tiene limitaciones de cobertura. Revisá Calidad de datos antes de interpretar variables dependientes de fechas/eventos.")
+    else:
+        st.success("La foto de resultados pasa los controles disponibles. Podés usar forma, rankings y comparación como estado actual.")
+
+    with st.expander("Cómo usar el laboratorio", expanded=quality["status"] == "blocked"):
+        st.markdown(
+            "**1. Primero mirá este estado.** Para trabajo editorial, conviene que la cobertura de resultados no esté bloqueada.  \n"
+            "**2. Partido:** elegí un próximo cruce para ver cómo llega cada equipo usando sólo información previa.  \n"
+            "**3. Equipos:** perfil de un club, forma reciente, local/visitante y ratings.  \n"
+            "**4. Comparador:** enfrentá dos equipos aunque no jueguen entre sí en la próxima fecha.  \n"
+            "**5. Rankings:** Elo, Colley y PageRank.  \n"
+            "**6. Calidad de datos:** muestra qué fuente respondió, cuántos partidos aportó y qué falta."
+        )
+
     st.subheader("Próximos partidos")
     nxt = service.next_matches(8)
     if nxt:
@@ -57,6 +81,9 @@ def home_page(service):
             when = stamp.strftime("%d/%m %H:%M") if not pd.isna(stamp) else f"Fecha {m['round']}"
             rows.append({"Cuándo": when, "Fecha": m["round"], "Local": m["home_team"], "Visitante": m["away_team"]})
         st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+    else:
+        st.info("No hay próximos partidos identificados con la fuente actual.")
+
     rankings = service.get_rankings()["rankings"]
     top = sorted(rankings["elo"].items(), key=lambda kv: kv[1], reverse=True)[:5]
     st.subheader("Elo destacado")
@@ -207,17 +234,34 @@ def laboratory_page(service):
 def quality_page(service):
     st.title("Calidad de datos")
     q = service.data_quality()
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Fixture", q["expected_matches"])
-    c2.metric("Resultados", q["finished_matches"])
-    c3.metric("Pendientes", q["pending_matches"])
-    c4.metric("Con fecha", q["dated_matches"])
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Fecha actual", q.get("current_round") or "—")
+    c2.metric("Fixture", q["expected_matches"])
+    c3.metric("Resultados", q["finished_matches"])
+    c4.metric("Pendientes", q["pending_matches"])
+    c5.metric("Con fecha", q["dated_matches"])
     st.write("**Fuentes:** " + (" · ".join(q["sources"]) or "—"))
     st.write(f"**Base cronológica:** {q['chronology_basis']}")
     if q.get("updated_at"):
-        st.write(f"**Último intento de actualización:** {q['updated_at']}")
+        stamp = pd.to_datetime(q["updated_at"], errors="coerce", utc=True)
+        when = stamp.tz_convert("America/Argentina/Buenos_Aires").strftime("%d/%m/%Y %H:%M ARG") if not pd.isna(stamp) else q["updated_at"]
+        st.write(f"**Último intento de actualización:** {when}")
     if q.get("expected_played_matches") is not None:
         st.write(f"**Partidos jugados según tabla de contraste:** {q['expected_played_matches']}")
+
+    source_health = q.get("source_health") or {}
+    if source_health:
+        st.subheader("Qué aportó cada fuente en esta actualización")
+        source_rows = []
+        for source, values in source_health.items():
+            source_rows.append({
+                "Fuente": source,
+                "Registros reconocidos": values.get("records", 0),
+                "Resultados finales": values.get("finished", 0),
+                "Partidos con fecha": values.get("dated", 0),
+            })
+        st.dataframe(pd.DataFrame(source_rows), use_container_width=True, hide_index=True)
+
     for issue in q["issues"]:
         if issue["level"] == "blocked": st.error(issue["message"])
         elif issue["level"] == "warning": st.warning(issue["message"])
