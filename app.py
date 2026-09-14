@@ -7,7 +7,21 @@ from football_lab.data.calculator_adapter import ExistingCalculatorProvider
 from football_lab.data.csv_provider import DataFrameProvider
 from football_lab.data.scraping_provider import PublicScrapingProvider
 from football_lab.services.lab_service import LabService
-from football_lab.config import APP_BUILD_ID, APP_BUILD_LABEL, MIN_VERIFIED_FINISHED
+
+# Compatibilidad de deploy: estos valores viven en app.py para que la app
+# arranque incluso si GitHub conserva una version anterior de
+# football_lab/config.py. Los inyectamos ANTES de importar ui.pages porque
+# algunas versiones de pages.py los importan desde config.
+import football_lab.config as lab_config
+
+APP_BUILD_ID = "2026.09.14-f9-r6"
+APP_BUILD_LABEL = "Fecha 9 · hotfix de arranque de un solo archivo"
+MIN_VERIFIED_FINISHED = 132
+
+lab_config.APP_BUILD_ID = APP_BUILD_ID
+lab_config.APP_BUILD_LABEL = APP_BUILD_LABEL
+lab_config.MIN_VERIFIED_FINISHED = MIN_VERIFIED_FINISHED
+
 from football_lab.ui.pages import PAGES, render_page
 
 
