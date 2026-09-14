@@ -36,7 +36,7 @@ source_mode = st.sidebar.radio(
     "Fuente de partidos",
     ["Web · scraping público", "Base incluida · offline"],
     index=0,
-    help="El modo web usa HTML público de FutbolArgentino y LPF. Si falla, conserva la última snapshot válida y luego la base incluida.",
+    help="El modo web combina TyC Sports, FutbolArgentino y LPF oficial. Si una fuente falla, conserva la mejor cobertura disponible y luego la última snapshot válida.",
 )
 
 if source_mode.startswith("Web"):
@@ -65,6 +65,12 @@ if uploaded is not None:
         st.sidebar.error(f"No pude usar el CSV: {exc}")
 
 quality = service.data_quality()
+if quality.get("current_round"):
+    st.sidebar.caption(f"Fecha actual detectada: {quality['current_round']}")
+if quality.get("expected_played_matches") is not None:
+    st.sidebar.caption(
+        f"Cobertura: {quality['finished_matches']}/{quality['expected_played_matches']} resultados del control"
+    )
 if source_mode.startswith("Web") and uploaded is None:
     if quality.get("live_results_ok"):
         st.sidebar.success(f"Resultados web actualizados · {quality['finished_matches']} finales cargados")
@@ -82,8 +88,14 @@ if source_mode.startswith("Web") and uploaded is None:
 
 page = st.sidebar.radio("Sección", list(PAGES))
 if quality["status"] == "blocked":
-    st.error(
-        "La foto actual tiene un bloqueo de calidad. Revisá 'Calidad de datos': la app conserva los datos, "
-        "pero no conviene tratarlos como una actualización completa."
-    )
+    expected = quality.get("expected_played_matches")
+    if expected is not None and quality.get("finished_matches", 0) < expected:
+        st.error(
+            f"Datos incompletos: {quality['finished_matches']}/{expected} resultados respecto del control público. "
+            "La app sigue disponible, pero forma y rankings no deben tratarse como foto actual hasta completar la cobertura."
+        )
+    else:
+        st.error(
+            "La foto actual tiene un bloqueo de calidad. Revisá 'Calidad de datos' para ver el control que no cierra."
+        )
 render_page(page, service)
