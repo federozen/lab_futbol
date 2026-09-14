@@ -1,0 +1,960 @@
+{
+  "children": [
+    {
+      "name": "Zona A",
+      "standings": {
+        "entries": [
+          {
+            "team": {
+              "displayName": "Gimnasia de Mendoza"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 9
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 2
+              },
+              {
+                "name": "pointsFor",
+                "value": 8
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 1
+              }
+            ],
+            "note": {
+              "description": "Playoffs"
+            }
+          },
+          {
+            "team": {
+              "displayName": "Deportivo Riestra"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 8
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 1
+              },
+              {
+                "name": "pointsFor",
+                "value": 9
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 2
+              }
+            ],
+            "note": {
+              "description": "Playoffs"
+            }
+          },
+          {
+            "team": {
+              "displayName": "Independiente"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 7
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 0
+              },
+              {
+                "name": "pointsFor",
+                "value": 10
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Newell's Old Boys"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 10
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": -1
+              },
+              {
+                "name": "pointsFor",
+                "value": 7
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 4
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Vélez Sarsfield"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 9
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 3
+              },
+              {
+                "name": "pointsFor",
+                "value": 8
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 5
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Lanús"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 8
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 2
+              },
+              {
+                "name": "pointsFor",
+                "value": 9
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 6
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Unión"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 7
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 1
+              },
+              {
+                "name": "pointsFor",
+                "value": 10
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Platense"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 10
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 0
+              },
+              {
+                "name": "pointsFor",
+                "value": 7
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 8
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Defensa y Justicia"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 9
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": -1
+              },
+              {
+                "name": "pointsFor",
+                "value": 8
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 9
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "San Lorenzo"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 8
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 3
+              },
+              {
+                "name": "pointsFor",
+                "value": 9
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 10
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Central Córdoba"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 7
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 2
+              },
+              {
+                "name": "pointsFor",
+                "value": 10
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 11
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Instituto"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 10
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 1
+              },
+              {
+                "name": "pointsFor",
+                "value": 7
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 12
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Talleres"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 9
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 0
+              },
+              {
+                "name": "pointsFor",
+                "value": 8
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 13
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Estudiantes de La Plata"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 8
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": -1
+              },
+              {
+                "name": "pointsFor",
+                "value": 9
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 14
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Boca Juniors"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 7
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 3
+              },
+              {
+                "name": "pointsFor",
+                "value": 10
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 15
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "Zona B",
+      "standings": {
+        "entries": [
+          {
+            "team": {
+              "displayName": "Argentinos Juniors"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 9
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 2
+              },
+              {
+                "name": "pointsFor",
+                "value": 8
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 1
+              }
+            ],
+            "note": {
+              "description": "Playoffs"
+            }
+          },
+          {
+            "team": {
+              "displayName": "Belgrano"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 8
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 1
+              },
+              {
+                "name": "pointsFor",
+                "value": 9
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 2
+              }
+            ],
+            "note": {
+              "description": "Playoffs"
+            }
+          },
+          {
+            "team": {
+              "displayName": "Racing"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 7
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 0
+              },
+              {
+                "name": "pointsFor",
+                "value": 10
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Huracán"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 10
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": -1
+              },
+              {
+                "name": "pointsFor",
+                "value": 7
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 4
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Estudiantes de Río Cuarto"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 9
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 3
+              },
+              {
+                "name": "pointsFor",
+                "value": 8
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 5
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Barracas Central"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 8
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 2
+              },
+              {
+                "name": "pointsFor",
+                "value": 9
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 6
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Aldosivi"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 7
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 1
+              },
+              {
+                "name": "pointsFor",
+                "value": 10
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 7
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Atlético Tucumán"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 10
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 0
+              },
+              {
+                "name": "pointsFor",
+                "value": 7
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 8
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Independiente Rivadavia"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 9
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": -1
+              },
+              {
+                "name": "pointsFor",
+                "value": 8
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 9
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Sarmiento"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 8
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 3
+              },
+              {
+                "name": "pointsFor",
+                "value": 9
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 10
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Banfield"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 7
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 2
+              },
+              {
+                "name": "pointsFor",
+                "value": 10
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 11
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Rosario Central"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 10
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 1
+              },
+              {
+                "name": "pointsFor",
+                "value": 7
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 12
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Gimnasia La Plata"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 9
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 0
+              },
+              {
+                "name": "pointsFor",
+                "value": 8
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 5
+              },
+              {
+                "name": "rank",
+                "value": 13
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "River Plate"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 8
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": -1
+              },
+              {
+                "name": "pointsFor",
+                "value": 9
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 6
+              },
+              {
+                "name": "rank",
+                "value": 14
+              }
+            ]
+          },
+          {
+            "team": {
+              "displayName": "Tigre"
+            },
+            "stats": [
+              {
+                "name": "points",
+                "value": 7
+              },
+              {
+                "name": "gamesPlayed",
+                "value": 4
+              },
+              {
+                "name": "pointDifferential",
+                "value": 3
+              },
+              {
+                "name": "pointsFor",
+                "value": 10
+              },
+              {
+                "name": "pointsAgainst",
+                "value": 4
+              },
+              {
+                "name": "rank",
+                "value": 15
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

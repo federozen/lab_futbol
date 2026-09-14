@@ -1,0 +1,581 @@
+{
+  "snapshot_at": "2026-08-11T20:28:00-03:00",
+  "status": "Clausura 2026 tras 59 partidos; Talleres-Lanus de Fecha 4 todavía pendiente (21:00 ART).",
+  "sources": [
+    "https://www.futbolargentino.com/primera-division/clausura/tabla-de-posiciones",
+    "https://www.tycsports.com/liga-profesional-de-futbol/fecha-4-del-clausura-2026-partidos-y-resultados-de-la-liga-profesional-argentina-op-id753651.html",
+    "https://nuevomundosj.com.ar/se-cierra-la-cuarta-fecha-del-torneo-clausura/"
+  ],
+  "zones": {
+    "A": {
+      "Vélez Sarsfield": {
+        "pts": 10,
+        "pj": 4,
+        "gf": 6,
+        "ga": 2,
+        "dg": 4
+      },
+      "Instituto": {
+        "pts": 9,
+        "pj": 4,
+        "gf": 4,
+        "ga": 2,
+        "dg": 2
+      },
+      "Defensa y Justicia": {
+        "pts": 7,
+        "pj": 4,
+        "gf": 5,
+        "ga": 6,
+        "dg": -1
+      },
+      "Deportivo Riestra": {
+        "pts": 6,
+        "pj": 4,
+        "gf": 6,
+        "ga": 3,
+        "dg": 3
+      },
+      "Gimnasia de Mendoza": {
+        "pts": 6,
+        "pj": 4,
+        "gf": 3,
+        "ga": 2,
+        "dg": 1
+      },
+      "Independiente": {
+        "pts": 6,
+        "pj": 4,
+        "gf": 3,
+        "ga": 2,
+        "dg": 1
+      },
+      "Central Córdoba": {
+        "pts": 6,
+        "pj": 4,
+        "gf": 3,
+        "ga": 4,
+        "dg": -1
+      },
+      "Boca Juniors": {
+        "pts": 5,
+        "pj": 4,
+        "gf": 4,
+        "ga": 6,
+        "dg": -2
+      },
+      "Newell's Old Boys": {
+        "pts": 4,
+        "pj": 4,
+        "gf": 4,
+        "ga": 5,
+        "dg": -1
+      },
+      "Unión": {
+        "pts": 4,
+        "pj": 4,
+        "gf": 5,
+        "ga": 7,
+        "dg": -2
+      },
+      "Platense": {
+        "pts": 4,
+        "pj": 4,
+        "gf": 4,
+        "ga": 8,
+        "dg": -4
+      },
+      "Talleres": {
+        "pts": 3,
+        "pj": 3,
+        "gf": 5,
+        "ga": 4,
+        "dg": 1
+      },
+      "Lanús": {
+        "pts": 3,
+        "pj": 3,
+        "gf": 2,
+        "ga": 3,
+        "dg": -1
+      },
+      "Estudiantes de La Plata": {
+        "pts": 3,
+        "pj": 4,
+        "gf": 3,
+        "ga": 5,
+        "dg": -2
+      },
+      "San Lorenzo": {
+        "pts": 3,
+        "pj": 4,
+        "gf": 1,
+        "ga": 4,
+        "dg": -3
+      }
+    },
+    "B": {
+      "Argentinos Juniors": {
+        "pts": 12,
+        "pj": 4,
+        "gf": 9,
+        "ga": 3,
+        "dg": 6
+      },
+      "Gimnasia La Plata": {
+        "pts": 9,
+        "pj": 4,
+        "gf": 6,
+        "ga": 3,
+        "dg": 3
+      },
+      "Barracas Central": {
+        "pts": 9,
+        "pj": 4,
+        "gf": 3,
+        "ga": 2,
+        "dg": 1
+      },
+      "Belgrano": {
+        "pts": 7,
+        "pj": 4,
+        "gf": 4,
+        "ga": 2,
+        "dg": 2
+      },
+      "Huracán": {
+        "pts": 7,
+        "pj": 4,
+        "gf": 4,
+        "ga": 2,
+        "dg": 2
+      },
+      "Tigre": {
+        "pts": 7,
+        "pj": 4,
+        "gf": 4,
+        "ga": 2,
+        "dg": 2
+      },
+      "Independiente Rivadavia": {
+        "pts": 7,
+        "pj": 4,
+        "gf": 5,
+        "ga": 4,
+        "dg": 1
+      },
+      "Rosario Central": {
+        "pts": 7,
+        "pj": 4,
+        "gf": 4,
+        "ga": 3,
+        "dg": 1
+      },
+      "Sarmiento": {
+        "pts": 6,
+        "pj": 4,
+        "gf": 8,
+        "ga": 8,
+        "dg": 0
+      },
+      "Atlético Tucumán": {
+        "pts": 5,
+        "pj": 4,
+        "gf": 3,
+        "ga": 2,
+        "dg": 1
+      },
+      "Racing": {
+        "pts": 4,
+        "pj": 4,
+        "gf": 4,
+        "ga": 6,
+        "dg": -2
+      },
+      "Banfield": {
+        "pts": 4,
+        "pj": 4,
+        "gf": 3,
+        "ga": 5,
+        "dg": -2
+      },
+      "Estudiantes de Río Cuarto": {
+        "pts": 4,
+        "pj": 4,
+        "gf": 2,
+        "ga": 5,
+        "dg": -3
+      },
+      "Aldosivi": {
+        "pts": 1,
+        "pj": 4,
+        "gf": 3,
+        "ga": 6,
+        "dg": -3
+      },
+      "River Plate": {
+        "pts": 0,
+        "pj": 4,
+        "gf": 0,
+        "ga": 4,
+        "dg": -4
+      }
+    }
+  },
+  "played": [
+    [
+      "Belgrano",
+      "Rosario Central",
+      2,
+      1
+    ],
+    [
+      "Sarmiento",
+      "Argentinos Juniors",
+      2,
+      3
+    ],
+    [
+      "Defensa y Justicia",
+      "Aldosivi",
+      1,
+      1
+    ],
+    [
+      "Gimnasia de Mendoza",
+      "Central Córdoba",
+      1,
+      0
+    ],
+    [
+      "Racing",
+      "Gimnasia La Plata",
+      2,
+      1
+    ],
+    [
+      "Vélez Sarsfield",
+      "Instituto",
+      1,
+      0
+    ],
+    [
+      "Huracán",
+      "Banfield",
+      1,
+      0
+    ],
+    [
+      "Platense",
+      "Unión",
+      2,
+      2
+    ],
+    [
+      "Estudiantes de Río Cuarto",
+      "Tigre",
+      1,
+      0
+    ],
+    [
+      "Newell's Old Boys",
+      "Talleres",
+      1,
+      0
+    ],
+    [
+      "River Plate",
+      "Barracas Central",
+      0,
+      1
+    ],
+    [
+      "Lanús",
+      "San Lorenzo",
+      1,
+      0
+    ],
+    [
+      "Atlético Tucumán",
+      "Independiente Rivadavia",
+      0,
+      0
+    ],
+    [
+      "Estudiantes de La Plata",
+      "Independiente",
+      0,
+      2
+    ],
+    [
+      "Deportivo Riestra",
+      "Boca Juniors",
+      3,
+      0
+    ],
+    [
+      "Banfield",
+      "Sarmiento",
+      3,
+      2
+    ],
+    [
+      "San Lorenzo",
+      "Gimnasia de Mendoza",
+      1,
+      0
+    ],
+    [
+      "Rosario Central",
+      "Racing",
+      0,
+      0
+    ],
+    [
+      "Argentinos Juniors",
+      "Estudiantes de Río Cuarto",
+      3,
+      0
+    ],
+    [
+      "Barracas Central",
+      "Aldosivi",
+      1,
+      0
+    ],
+    [
+      "Defensa y Justicia",
+      "Deportivo Riestra",
+      2,
+      1
+    ],
+    [
+      "Gimnasia La Plata",
+      "River Plate",
+      1,
+      0
+    ],
+    [
+      "Instituto",
+      "Platense",
+      2,
+      1
+    ],
+    [
+      "Independiente Rivadavia",
+      "Huracán",
+      2,
+      1
+    ],
+    [
+      "Talleres",
+      "Vélez Sarsfield",
+      1,
+      3
+    ],
+    [
+      "Independiente",
+      "Newell's Old Boys",
+      1,
+      0
+    ],
+    [
+      "Central Córdoba",
+      "Atlético Tucumán",
+      0,
+      2
+    ],
+    [
+      "Gimnasia de Mendoza",
+      "Unión",
+      2,
+      0
+    ],
+    [
+      "Estudiantes de Río Cuarto",
+      "Banfield",
+      0,
+      0
+    ],
+    [
+      "Belgrano",
+      "Argentinos Juniors",
+      0,
+      1
+    ],
+    [
+      "Estudiantes de La Plata",
+      "Defensa y Justicia",
+      3,
+      0
+    ],
+    [
+      "Racing",
+      "Tigre",
+      1,
+      3
+    ],
+    [
+      "Deportivo Riestra",
+      "Barracas Central",
+      0,
+      1
+    ],
+    [
+      "Aldosivi",
+      "Gimnasia La Plata",
+      1,
+      2
+    ],
+    [
+      "Newell's Old Boys",
+      "Boca Juniors",
+      2,
+      2
+    ],
+    [
+      "River Plate",
+      "Rosario Central",
+      0,
+      1
+    ],
+    [
+      "Lanús",
+      "Instituto",
+      0,
+      1
+    ],
+    [
+      "Sarmiento",
+      "Independiente Rivadavia",
+      2,
+      1
+    ],
+    [
+      "Platense",
+      "Talleres",
+      0,
+      4
+    ],
+    [
+      "Vélez Sarsfield",
+      "Independiente",
+      1,
+      0
+    ],
+    [
+      "Huracán",
+      "Atlético Tucumán",
+      0,
+      0
+    ],
+    [
+      "Central Córdoba",
+      "San Lorenzo",
+      1,
+      0
+    ],
+    [
+      "Boca Juniors",
+      "Estudiantes de La Plata",
+      1,
+      0
+    ],
+    [
+      "Tigre",
+      "Belgrano",
+      0,
+      0
+    ],
+    [
+      "Unión",
+      "Lanús",
+      2,
+      1
+    ],
+    [
+      "Rosario Central",
+      "Aldosivi",
+      2,
+      1
+    ],
+    [
+      "Independiente Rivadavia",
+      "Estudiantes de Río Cuarto",
+      2,
+      1
+    ],
+    [
+      "Deportivo Riestra",
+      "Estudiantes de La Plata",
+      2,
+      0
+    ],
+    [
+      "Atlético Tucumán",
+      "Sarmiento",
+      1,
+      2
+    ],
+    [
+      "Tigre",
+      "River Plate",
+      1,
+      0
+    ],
+    [
+      "Boca Juniors",
+      "Vélez Sarsfield",
+      1,
+      1
+    ],
+    [
+      "Independiente",
+      "Platense",
+      0,
+      1
+    ],
+    [
+      "Instituto",
+      "Gimnasia de Mendoza",
+      1,
+      0
+    ],
+    [
+      "San Lorenzo",
+      "Huracán",
+      0,
+      2
+    ],
+    [
+      "Gimnasia La Plata",
+      "Barracas Central",
+      2,
+      0
+    ],
+    [
+      "Defensa y Justicia",
+      "Newell's Old Boys",
+      2,
+      1
+    ],
+    [
+      "Argentinos Juniors",
+      "Racing",
+      2,
+      1
+    ],
+    [
+      "Banfield",
+      "Belgrano",
+      0,
+      2
+    ],
+    [
+      "Unión",
+      "Central Córdoba",
+      1,
+      2
+    ]
+  ]
+}
